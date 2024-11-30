@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map of YouthMappers Technical University Project Locations</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <style>
+        #map {
+            width: 100%;
+            height: 600px;
+        }
+        .leaflet-control-layers {
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Interactive Map of YouthMappers Technical University Project Locations</h2>
+    <div id="map"></div>
+
+    <script>
+        // Initialize the map centered around Sierra Leone
+        var map = L.map('map').setView([7.5, -11.5], 9);
+
+        // Define the base map layers (OSM and Satellite)
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var satelliteLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.jpg', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        // Define base layers control to switch between layers
+        var baseLayers = {
+            "OpenStreetMap": osmLayer,
+            "Satellite": satelliteLayer
+        };
+
+        L.control.layers(baseLayers).addTo(map);
+
+        // Coordinates for various locations
+        var locations = [
+            { name: "Mamambu", coords: [7.874242, -10.843106] },
+            { name: "Boilahun", coords: [7.879114, -10.825626] },
+            { name: "Kokoru", coords: [7.630947, -11.118109] },
+            { name: "Peri", coords: [7.661507, -11.079877] },
+            { name: "Jao", coords: [7.614025, -11.144747] },
+            { name: "Gegbwema", coords: [7.579690, -11.153781] },
+            { name: "Kamasu", coords: [7.602070, -11.145069] },
+            { name: "Combema", coords: [7.881267, -11.156154] },
+            { name: "Yabaima", coords: [7.684791, -11.184800] },
+            { name: "Kpuwabu", coords: [7.642717, -11.096651] },
+            { name: "Unnamed Location 1", coords: [7.857982, -10.849998] },
+            { name: "Unnamed Location 2", coords: [7.850211, -10.851600] },
+            { name: "Unnamed Location 3", coords: [7.853122, -10.834859] },
+            { name: "Unnamed Location 4", coords: [7.858044, -10.824851] },
+            { name: "Unnamed Location 5", coords: [7.858460, -10.819713] },
+            { name: "Unnamed Location 6", coords: [7.887290, -10.817721] }
+        ];
+
+        // Add markers for each location
+        var markers = [];
+        locations.forEach(function(location) {
+            var marker = L.marker(location.coords).addTo(map);
+            marker.bindTooltip(location.name || "No Name", { permanent: true, direction: 'top' });
+            markers.push(marker);
+        });
+
+        // Function to get the current location of the user
+        function getCurrentLocation(callback) {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    callback(lat, lon);
+                }, function(error) {
+                    alert("Error getting location.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        // Add routing function to show directions from current location to destination
+        var routingControl = null;
+
+        markers.forEach(function(marker) {
+            marker.on('click', function() {
+                // Get current location of the user
+                getCurrentLocation(function(currentLat, currentLon) {
+                    // Remove previous routing if it exists
+                    if (routingControl) {
+                        map.removeControl(routingControl);
+                    }
+                    // Create a new route from current location to the clicked marker
+                    routingControl = L.Routing.control({
+                        waypoints: [
+                            L.latLng(currentLat, currentLon), // current location
+                            marker.getLatLng()               // destination (clicked marker)
+                        ],
+                        routeWhileDragging: true
+                    }).addTo(map);
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
